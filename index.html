@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-card: #1e1e24;
+            --text-main: #e0e0e0;
+            --text-secondary: #b0b0b0; /* NEW: Lighter grey for visibility */
+            --accent: #7000ff; /* Cyber Purple */
+            --highlight: #00fff2; /* Neon Cyan */
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* --- VISIBILITY FIXES --- */
+        /* Overwriting Bootstrap's default muted color to be visible on dark bg */
+        .text-muted {
+            color: var(--text-secondary) !important;
+        }
+        
+        /* Placeholder text color fix */
+        ::placeholder {
+            color: var(--text-secondary) !important;
+            opacity: 0.7;
+        }
+
+        /* --- Layout & Cards --- */
+        .glass-panel {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            height: 90vh;
+            overflow-y: auto;
+        }
+
+        h2, h4 { font-weight: 700; letter-spacing: 1px; }
+
+        /* --- Left: Calendar --- */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            text-align: center;
+        }
+
+        .day-name {
+            color: var(--text-secondary); /* Fixed visibility */
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .calendar-day {
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .calendar-day.empty { cursor: default; }
+
+        /* The requested feature: 3px underline and big font for days with expenses */
+        .has-expense {
+            border-bottom: 3px solid var(--highlight);
+            font-size: 1.3rem; 
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 5px var(--highlight);
+        }
+
+        .calendar-day.active-day {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        /* --- Middle: Chart & Tags --- */
+        .tag-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+        .tag-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+        }
+
+        /* --- Right: The Bill --- */
+        .bill-container {
+            background: #fff;
+            color: #000;
+            border-radius: 5px;
+            padding: 20px;
+            position: relative;
+            font-family: 'Courier New', Courier, monospace;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(255,255,255,0.1);
+        }
+
+        /* Jagged edge for receipt effect */
+        .bill-container::after {
+            content: "";
+            background: linear-gradient(135deg, #fff 5px, transparent 0) 0 5px, linear-gradient(-135deg, #fff 5px, transparent 0) 0 5px;
+            background-color: var(--bg-card);
+            background-position: left bottom;
+            background-repeat: repeat-x;
+            background-size: 10px 10px;
+            display: block;
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+        }
+
+        .bill-item {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dashed #aaa;
+            padding: 8px 0;
+            font-size: 0.9rem;
+        }
+        
+        .bill-total {
+            margin-top: auto;
+            border-top: 2px solid #000;
+            padding-top: 15px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* --- Modal Customization --- */
+        .modal-content {
+            background-color: var(--bg-card);
+            color: white;
+            border: 1px solid var(--accent);
+        }
+        .form-control, .form-select {
+            background-color: #2b2b36;
+            border: 1px solid #444;
+            color: white;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #353542;
+            color: white;
+            box-shadow: 0 0 5px var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    </style>
+</head>
+<body>
+
+<div class="container-fluid py-4">
+    <div class="row g-4">
+        
+        <div class="col-lg-4">
+            <div class="glass-panel">
+                <div class="calendar-header">
+                    <button class="btn btn-sm btn-outline-light" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+                    <h4 id="monthYearDisplay" class="m-0">Month Year</h4>
+                    <button class="btn btn-sm btn-outline-light" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                
+                <div class="calendar-grid" id="calendarDaysHeader">
+                    <div class="day-name">Sun</div><div class="day-name">Mon</div><div class="day-name">Tue</div>
+                    <div class="day-name">Wed</div><div class="day-name">Thu</div><div class="day-name">Fri</div>
+                    <div class="day-name">Sat</div>
+                </div>
+                <div class="calendar-grid mt-2" id="calendarGrid">
+                    </div>
+
+                <div class="mt-4 text-center">
+                    <small class="text-muted d-block mb-2">Select a date to Add/Edit expenses</small>
+                    <button class="btn btn-outline-info w-100" onclick="viewHistory()">
+                        <i class="fas fa-history me-2"></i> View History
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="glass-panel d-flex flex-column align-items-center">
+                <h4 class="mb-4">Analysis</h4>
+                <div style="width: 100%; max-width: 300px; position: relative;">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+                
+                <div class="tag-legend mt-4">
+                    </div>
+                
+                <div class="mt-auto text-center p-3 w-100" style="background: rgba(255,255,255,0.05); border-radius: 10px;">
+                    <h6 class="text-muted">Top Expense</h6>
+                    <h3 id="topTagDisplay" style="color: var(--highlight)">-</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="bill-container">
+                <div class="text-center mb-3">
+                    <h3 style="letter-spacing: 2px;">MONTHLY BILL</h3>
+                    <small id="billDateRange">November 2023</small>
+                    <div style="border-bottom: 1px dashed #000; margin-top: 10px;"></div>
+                </div>
+
+                <div id="billList" style="flex-grow: 1; overflow-y: auto;">
+                    </div>
+
+                <div class="bill-total">
+                    <span>TOTAL</span>
+                    <span id="billTotalAmount">$0.00</span>
+                </div>
+                <div class="text-center mt-2" style="font-size: 0.7rem; color: #555;">
+                    THANK YOU FOR TRACKING<br>
+                    <i class="fas fa-barcode" style="font-size: 2rem; margin-top:5px;"></i>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="expenseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Manage Expenses: <span id="modalDateDisplay" class="text-info"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                
+                <h6 class="text-muted mb-2">Transactions on this day:</h6>
+                <ul class="list-group mb-3" id="modalExpenseList">
+                    </ul>
+
+                <hr class="border-secondary">
+                
+                <h6 class="text-highlight" style="color: var(--highlight)"><i class="fas fa-plus-circle"></i> Add New</h6>
+                <form id="addExpenseForm" class="mt-3">
+                    <div class="mb-2">
+                        <input type="number" class="form-control" id="expAmount" placeholder="Cost (e.g. 15.50)" required step="0.01">
+                    </div>
+                    <div class="mb-2">
+                        <select class="form-select" id="expTag">
+                            </select>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="expDesc" placeholder="Description (optional)">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100" style="background: var(--accent); border:none;">Add to Bill</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // --- CONFIGURATION ---
+    const TAGS = {
+        Food: { color: '#ff9f43', icon: 'fa-utensils' },
+        Travel: { color: '#54a0ff', icon: 'fa-plane' },
+        Study: { color: '#00d2d3', icon: 'fa-book' },
+        Fun: { color: '#a55eea', icon: 'fa-gamepad' },
+        Electronics: { color: '#5f27cd', icon: 'fa-laptop' },
+        Loaned: { color: '#ff6b6b', icon: 'fa-hand-holding-usd' },
+        Other: { color: '#8395a7', icon: 'fa-tag' }
+    };
+
+    // --- STATE MANAGEMENT ---
+    let expenses = JSON.parse(localStorage.getItem('expenseTrackerData')) || [];
+    let currentDate = new Date();
+    let selectedDate = null; // Stores string 'YYYY-MM-DD'
+    let expenseChartInstance = null;
+
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+        initTags();
+        renderCalendar();
+        updateUI();
+    });
+
+    function initTags() {
+        const select = document.getElementById('expTag');
+        const legend = document.querySelector('.tag-legend');
+        
+        Object.keys(TAGS).forEach(tag => {
+            // Populate Select
+            const opt = document.createElement('option');
+            opt.value = tag;
+            opt.innerHTML = tag;
+            select.appendChild(opt);
+
+            // Populate Legend
+            legend.innerHTML += `
+                <div class="tag-badge" style="color: ${TAGS[tag].color}; border: 1px solid ${TAGS[tag].color}">
+                    <i class="fas ${TAGS[tag].icon}"></i> ${tag}
+                </div>
+            `;
+        });
+    }
+
+    // --- CORE FUNCTIONS ---
+
+    function save() {
+        localStorage.setItem('expenseTrackerData', JSON.stringify(expenses));
+        updateUI();
+    }
+
+    function updateUI() {
+        renderCalendarGrid(); // Re-render grid to show underlines
+        updateBill();
+        updateChart();
+    }
+
+    // --- CALENDAR LOGIC ---
+    function renderCalendar() {
+        const monthYear = document.getElementById('monthYearDisplay');
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        monthYear.innerText = `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+        document.getElementById('billDateRange').innerText = monthYear.innerText;
+        renderCalendarGrid();
+    }
+
+    function renderCalendarGrid() {
+        const grid = document.getElementById('calendarGrid');
+        grid.innerHTML = '';
+
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        const firstDayIndex = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        // Empty slots before first day
+        for (let i = 0; i < firstDayIndex; i++) {
+            const div = document.createElement('div');
+            div.classList.add('calendar-day', 'empty');
+            grid.appendChild(div);
+        }
+
+        // Days
+        for (let i = 1; i <= daysInMonth; i++) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+            const div = document.createElement('div');
+            div.classList.add('calendar-day');
+            div.innerText = i;
+
+            // Check for expenses
+            const dayExpenses = expenses.filter(e => e.date === dateStr);
+            if (dayExpenses.length > 0) {
+                div.classList.add('has-expense'); // 3px underline & big font
+            }
+
+            div.onclick = () => openModal(dateStr);
+            grid.appendChild(div);
+        }
+    }
+
+    function changeMonth(direction) {
+        currentDate.setMonth(currentDate.getMonth() + direction);
+        renderCalendar();
+        updateUI(); // Refresh bill/chart for new month
+    }
+
+    // --- MODAL & CRUD ---
+    const modal = new bootstrap.Modal(document.getElementById('expenseModal'));
+
+    function openModal(dateStr) {
+        selectedDate = dateStr;
+        document.getElementById('modalDateDisplay').innerText = dateStr;
+        renderModalList();
+        modal.show();
+    }
+
+    function renderModalList() {
+        const list = document.getElementById('modalExpenseList');
+        list.innerHTML = '';
+        const dayExpenses = expenses.filter(e => e.date === selectedDate);
+
+        if(dayExpenses.length === 0) list.innerHTML = '<li class="list-group-item bg-dark text-muted">No expenses yet.</li>';
+
+        dayExpenses.forEach(exp => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center bg-dark text-white border-secondary';
+            li.innerHTML = `
+                <div>
+                    <i class="fas ${TAGS[exp.tag].icon}" style="color: ${TAGS[exp.tag].color}"></i>
+                    <strong>${exp.amount}</strong> 
+                    <small class="text-muted">- ${exp.tag}</small>
+                </div>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteExpense(${exp.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    document.getElementById('addExpenseForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const amt = parseFloat(document.getElementById('expAmount').value);
+        const tag = document.getElementById('expTag').value;
+        const desc = document.getElementById('expDesc').value;
+
+        if (!amt || !selectedDate) return;
+
+        const newExpense = {
+            id: Date.now(),
+            date: selectedDate,
+            amount: amt,
+            tag: tag,
+            desc: desc
+        };
+
+        expenses.push(newExpense);
+        save();
+        
+        // Reset form but keep modal open to add more
+        document.getElementById('expAmount').value = '';
+        document.getElementById('expDesc').value = '';
+        renderModalList();
+    });
+
+    function deleteExpense(id) {
+        expenses = expenses.filter(e => e.id !== id);
+        save();
+        renderModalList();
+    }
+
+    // --- BILL & CHART LOGIC ---
+
+    function getMonthExpenses() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth(); // 0-indexed
+        return expenses.filter(e => {
+            const d = new Date(e.date);
+            return d.getFullYear() === year && d.getMonth() === month;
+        });
+    }
+
+    function updateBill() {
+        const list = document.getElementById('billList');
+        const totalEl = document.getElementById('billTotalAmount');
+        const monthExpenses = getMonthExpenses();
+
+        // Sort by date descending
+        monthExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        list.innerHTML = '';
+        let total = 0;
+
+        monthExpenses.forEach(exp => {
+            total += exp.amount;
+            const item = document.createElement('div');
+            item.className = 'bill-item';
+            // Show Day only in bill
+            const day = exp.date.split('-')[2]; 
+            
+            item.innerHTML = `
+                <span>
+                    <span style="display:inline-block; width:25px; color:#666;">${day}</span>
+                    <span style="color: ${TAGS[exp.tag].color}">${exp.tag.toUpperCase()}</span>
+                </span>
+                <span>$${exp.amount.toFixed(2)}</span>
+            `;
+            list.appendChild(item);
+        });
+
+        totalEl.innerText = `$${total.toFixed(2)}`;
+    }
+
+    function updateChart() {
+        const ctx = document.getElementById('expenseChart').getContext('2d');
+        const monthExpenses = getMonthExpenses();
+        
+        // Aggregate data
+        const tagTotals = {};
+        Object.keys(TAGS).forEach(t => tagTotals[t] = 0);
+        
+        monthExpenses.forEach(e => {
+            if(tagTotals[e.tag] !== undefined) tagTotals[e.tag] += e.amount;
+        });
+
+        const data = Object.values(tagTotals);
+        const labels = Object.keys(tagTotals);
+        const colors = labels.map(l => TAGS[l].color);
+
+        // Calculate Top Expense for Display
+        let maxVal = 0; 
+        let maxTag = "None";
+        labels.forEach((l, i) => {
+            if(data[i] > maxVal) { maxVal = data[i]; maxTag = l; }
+        });
+        document.getElementById('topTagDisplay').innerText = maxTag;
+
+
+        if (expenseChartInstance) {
+            expenseChartInstance.destroy();
+        }
+
+        expenseChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: colors,
+                    borderColor: '#1e1e24',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                cutout: '70%'
+            }
+        });
+    }
+
+    function viewHistory() {
+        alert("This view currently shows live data. Use the arrows above the calendar to navigate previous months!");
+    }
+
+</script>
+</body>
+</html>
