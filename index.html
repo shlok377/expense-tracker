@@ -1,25 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expense Tracker</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         :root {
-            --bg-dark: #121212;
-            --bg-card: #1e1e24;
-            --text-main: #e0e0e0;
-            --text-secondary: #b0b0b0; 
-            --accent: #7000ff;
-            --highlight: #00fff2;
+            /* NEW COLOR SCHEME */
+            --bg-dark: #dce6fe;
+            /* Lightest Blue Background */
+            --bg-card: #ffffff;
+            /* White Panels */
+            --text-main: #000000;
+            /* Black Text */
+            --text-secondary: #7e90ba;
+            /* Muted Blue Text */
+            --accent: #7e90ba;
+            /* Accent Blue */
+            --highlight: #5d6d91;
+            /* Darker Accent for active states */
             --danger-glow: #ff4757;
             --success-glow: #2ed573;
+            --border-soft: #c2cff2;
+            /* Soft Blue Border */
         }
 
         body {
@@ -30,53 +40,217 @@
         }
 
         /* --- VISIBILITY FIXES --- */
-        .text-muted { color: var(--text-secondary) !important; }
-        ::placeholder { color: var(--text-secondary) !important; opacity: 0.7; }
+        .text-muted {
+            color: var(--text-secondary) !important;
+        }
+
+        ::placeholder {
+            color: var(--text-secondary) !important;
+            opacity: 0.7;
+        }
 
         /* --- Layout & Cards --- */
         .glass-panel {
             background: var(--bg-card);
-            border-radius: 15px;
+            border-radius: 20px;
             padding: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            /* Soft Blue Shadow */
+            box-shadow: 0 10px 40px -10px rgba(126, 144, 186, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.6);
             /* Desktop: Fixed height for dashboard look */
-            height: 90vh; 
+            height: 90vh;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             position: relative;
         }
 
+        /* --- TARGET CARD (UPDATED) --- */
+        .target-card {
+            /* Gradient: Black to Muted Blue (Flipped 180deg) */
+            background: linear-gradient(315deg, #000000 0%, #5f709a 100%);
+            border-radius: 16px;
+            padding: 25px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+
+            aspect-ratio: 1.586 / 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .target-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+            transform: rotate(30deg);
+            pointer-events: none;
+        }
+
+        .card-dots {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            display: flex;
+        }
+
+        .dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            opacity: 0.9;
+        }
+
+        .dot-red {
+            background: #eb001b;
+            margin-right: -12px;
+            z-index: 1;
+            mix-blend-mode: hard-light;
+        }
+
+        .dot-orange {
+            background: #f79e1b;
+            z-index: 0;
+        }
+
+        .card-top-content {
+            z-index: 2;
+            position: relative;
+        }
+
+        .card-number {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+            color: #c2cff2;
+            /* Soft Blue text */
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            z-index: 2;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+
+        .target-input-group {
+            display: flex;
+            align-items: baseline;
+        }
+
+        .currency-symbol {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffffff;
+            margin-right: 2px;
+        }
+
+        .target-input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+            width: 100%;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .target-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+
+        .target-input::-webkit-inner-spin-button,
+        .target-input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .custom-progress {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .custom-progress-bar {
+            height: 100%;
+            /* Gradient matching the lighter blues/accents */
+            background: linear-gradient(-90deg, #aec0f3, #7e90ba);
+            border-radius: 3px;
+            transition: width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            width: 0%;
+            box-shadow: 0 0 10px rgba(194, 207, 242, 0.5);
+        }
+
+        .margin-indicator {
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .margin-good {
+            color: #2ed573;
+        }
+
+        .margin-bad {
+            color: #ff4757;
+        }
+
+
         /* --- MOBILE OPTIMIZATION --- */
         @media (max-width: 991px) {
             .glass-panel {
-                height: auto; 
-                min-height: 350px; 
+                height: auto;
+                min-height: 350px;
                 margin-bottom: 20px;
             }
+
             .bill-container {
                 min-height: 400px;
+                padding-bottom: 40px;
+                /* Extra padding on mobile */
             }
+
             #chartContainer {
                 max-width: 220px !important;
             }
         }
 
-        h2, h4 { font-weight: 700; letter-spacing: 1px; }
+        h2,
+        h4 {
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
 
-        /* --- Calendar --- */
-        .calendar-header {
+        /* --- Calendar Styles --- */
+        .calendar-controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-soft);
         }
 
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 5px; 
+            gap: 5px;
             text-align: center;
         }
 
@@ -94,17 +268,24 @@
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
+            color: var(--text-main);
         }
 
-        .calendar-day:hover { background-color: rgba(255, 255, 255, 0.1); }
-        .calendar-day.empty { cursor: default; }
+        .calendar-day:hover {
+            background-color: var(--bg-dark);
+        }
+
+        .calendar-day.empty {
+            cursor: default;
+        }
 
         .has-expense {
-            border-bottom: 3px solid var(--highlight);
-            font-size: 1.3rem; 
+            border-bottom: 3px solid var(--accent);
+            font-size: 1.3rem;
             font-weight: bold;
-            color: #fff;
-            text-shadow: 0 0 5px var(--highlight);
+            color: var(--highlight);
+            /* Highlight color for text */
+            text-shadow: none;
         }
 
         /* --- Chart & Tags --- */
@@ -115,6 +296,7 @@
             margin-top: 20px;
             justify-content: center;
         }
+
         .tag-badge {
             padding: 5px 12px;
             border-radius: 20px;
@@ -122,13 +304,15 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            background: rgba(255,255,255,0.05);
-            color: #fff;
+            background: var(--bg-dark);
+            /* Using light blue bg for badges */
+            color: var(--text-main);
+            border: 1px solid var(--border-soft) !important;
         }
 
         /* --- Loan Manager List --- */
         .loan-item {
-            background: rgba(0,0,0,0.2);
+            background: #f8f9fa;
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 10px;
@@ -137,483 +321,789 @@
             align-items: center;
             border-left: 3px solid var(--danger-glow);
             transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
+
         .loan-item.paid {
             border-left: 3px solid var(--success-glow);
             opacity: 0.5;
         }
+
         .loan-item.paid .loan-text {
             text-decoration: line-through;
         }
-        
-        /* Custom Checkbox */
+
         .custom-checkbox {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             cursor: pointer;
             border: 2px solid var(--text-secondary);
-            border-radius: 4px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: background-color 0.2s, border-color 0.2s;
         }
+
         .custom-checkbox.checked {
             background-color: var(--success-glow);
             border-color: var(--success-glow);
         }
+
         .custom-checkbox.checked::after {
             content: '\2713';
-            color: #000;
+            color: #fff;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 16px;
         }
 
-        /* --- Panel Navigation (Bottom Arrows) --- */
+        /* --- UPDATED ANIMATIONS (Chilled & Bouncy) --- */
+
+        /* 1. Intro Animation: Chilled Pop (Super Slow) */
+        @keyframes introPop {
+            0% {
+                opacity: 0;
+                transform: translateY(50px) scale(0.95);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .intro-animate {
+            /* Ease Out Back for the bounce, slowed down to 2.5s */
+            animation: introPop 2.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0;
+        }
+
+        /* 2. UI Micro-interactions */
+        @keyframes popBounce {
+            0% {
+                transform: scale(1);
+            }
+
+            40% {
+                transform: scale(1.4);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .pop-anim {
+            animation: popBounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes labelSnap {
+            0% {
+                transform: scale(0.9);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .label-anim {
+            animation: labelSnap 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes billItemSlide {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .bill-item-animate {
+            animation: billItemSlide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            opacity: 0;
+        }
+
+        /* --- Panel Navigation --- */
         .panel-nav {
             margin-top: auto;
             width: 100%;
             display: flex;
             justify-content: space-between;
             padding-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid var(--border-soft);
         }
+
         .nav-arrow {
             cursor: pointer;
-            color: var(--highlight);
+            color: var(--accent);
             font-size: 1.2rem;
             padding: 5px 15px;
             transition: transform 0.2s;
         }
-        .nav-arrow:hover { transform: scale(1.2); }
 
-        /* --- The Bill --- */
+        .nav-arrow:hover {
+            transform: scale(1.2);
+            color: var(--highlight);
+        }
+
+        /* --- The Bill (Updated Rounded Style) --- */
         .bill-container {
-            background: #fff;
+            background: #ffffff;
             color: #000;
-            border-radius: 5px;
-            padding: 20px;
+            border-radius: 20px;
+            /* Fully rounded corners matching other panels */
+            padding: 25px 20px;
             position: relative;
             font-family: 'Courier New', Courier, monospace;
-            height: 100%; 
+            /* Flexible Height */
+            height: auto;
+            min-height: 100%;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 0 20px rgba(255,255,255,0.1);
+            box-shadow: 0 10px 40px -10px rgba(126, 144, 186, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.6);
         }
 
-        .bill-container::after {
-            content: "";
-            background: linear-gradient(135deg, #fff 5px, transparent 0) 0 5px, linear-gradient(-135deg, #fff 5px, transparent 0) 0 5px;
-            background-color: var(--bg-card);
-            background-position: left bottom;
-            background-repeat: repeat-x;
-            background-size: 10px 10px;
-            display: block;
-            position: absolute;
-            bottom: -10px;
-            left: 0;
-            width: 100%;
-            height: 10px;
-        }
+        /* Removed ::after pseudo-element (jagged edge) for clean rounded look */
 
         .bill-item {
             display: flex;
             justify-content: space-between;
-            border-bottom: 1px dashed #aaa;
+            border-bottom: 1px dashed var(--border-soft);
             padding: 8px 0;
             font-size: 0.9rem;
             align-items: flex-start;
+            font-weight: 800;
         }
-        
+
         .bill-total {
             margin-top: auto;
             border-top: 2px solid #000;
             padding-top: 15px;
             font-size: 1.5rem;
-            font-weight: bold;
+            font-weight: 900;
             display: flex;
             justify-content: space-between;
+            color: #000;
         }
 
         /* --- Modal --- */
         .modal-content {
             background-color: var(--bg-card);
-            color: white;
-            border: 1px solid var(--accent);
+            color: var(--text-main);
+            border: 1px solid var(--border-soft);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
-        .form-control, .form-select {
-            background-color: #2b2b36;
-            border: 1px solid #444;
-            color: white;
+
+        .form-control,
+        .form-select {
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-soft);
+            color: var(--text-main);
         }
-        .form-control:focus, .form-select:focus {
-            background-color: #353542;
-            color: white;
+
+        .form-control:focus,
+        .form-select:focus {
+            background-color: #fff;
+            color: var(--text-main);
             box-shadow: 0 0 5px var(--accent);
             border-color: var(--accent);
         }
 
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-dark); }
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
 
-        .d-none { display: none !important; }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
 
+        ::-webkit-scrollbar-thumb {
+            background: #b0b0b0;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        .d-none {
+            display: none !important;
+        }
+
+        /* --- SHARED ANIMATION STYLES (GRID STACK) --- */
+        #viewsWrapper,
+        #calendarStack {
+            display: grid;
+            grid-template-areas: "stack";
+            width: 100%;
+            flex-grow: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .view-panel,
+        .calendar-slide {
+            grid-area: stack;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Helper Classes */
+        .panel-hidden {
+            opacity: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .panel-visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(0);
+            z-index: 1;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container-fluid py-4">
-    <div class="row g-4">
-        
-        <!-- COLUMN 1: CALENDAR -->
-        <div class="col-lg-4">
-            <div class="glass-panel">
-                <div class="calendar-header">
-                    <button class="btn btn-sm btn-outline-light" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
-                    <h4 id="monthYearDisplay" class="m-0">Month Year</h4>
-                    <button class="btn btn-sm btn-outline-light" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
-                </div>
-                
-                <div class="calendar-grid" id="calendarDaysHeader">
-                    <div class="day-name">Sun</div><div class="day-name">Mon</div><div class="day-name">Tue</div>
-                    <div class="day-name">Wed</div><div class="day-name">Thu</div><div class="day-name">Fri</div>
-                    <div class="day-name">Sat</div>
-                </div>
-                <div class="calendar-grid mt-2" id="calendarGrid">
-                    <!-- Days injected by JS -->
-                </div>
+    <div class="container-fluid py-4">
+        <div class="row g-4">
 
-                <div class="mt-4 text-center pb-3">
-                    <small class="text-muted d-block mb-2">Select a date to Add/Edit expenses</small>
-                    <button class="btn btn-outline-info w-100" onclick="viewHistory()">
-                        <i class="fas fa-history me-2"></i> View History
-                    </button>
-                </div>
-            </div>
-        </div>
+            <!-- COLUMN 1: TARGET + CALENDAR -->
+            <div class="col-lg-4">
 
-        <!-- COLUMN 2: SWITCHABLE (STATS / LOANS) -->
-        <div class="col-lg-4">
-            <div class="glass-panel">
-                
-                <!-- VIEW 1: Analysis Chart -->
-                <div id="viewAnalysis" class="flex-column align-items-center h-100 d-flex">
-                    <h4 class="mb-4">Analysis</h4>
-                    <div id="chartContainer" style="width: 100%; max-width: 300px; position: relative;">
-                        <canvas id="expenseChart"></canvas>
+                <!-- NEW TARGET CARD (Intro Animation Delay 0.1s) -->
+                <div class="target-card intro-animate" style="animation-delay: 0.1s;">
+                    <!-- Top content -->
+                    <div class="card-top-content">
+                        <div class="text-white-50 small mb-1" style="font-family: sans-serif; letter-spacing: 1px;">
+                            MONTHLY TARGET</div>
+                        <div class="target-input-group">
+                            <span class="currency-symbol">$</span>
+                            <input type="number" id="targetInput" class="target-input" value="500" placeholder="0">
+                        </div>
+
+                        <div class="custom-progress">
+                            <div id="targetProgressBar" class="custom-progress-bar"></div>
+                        </div>
+
+                        <div id="targetMarginDisplay" class="margin-indicator">
+                            <!-- Injected by JS -->
+                        </div>
                     </div>
-                    
-                    <div class="tag-legend mt-4">
-                        <!-- Legend injected by JS -->
+
+                    <!-- Bottom content -->
+                    <div class="card-number">
+                        **** **** **** 1397
                     </div>
-                    
-                    <div class="mt-4 text-center p-3 w-100" style="background: rgba(255,255,255,0.05); border-radius: 10px;">
-                        <h6 class="text-muted">Top Expense</h6>
-                        <h3 id="topTagDisplay" style="color: var(--highlight)">-</h3>
+
+                    <!-- Decor Dots -->
+                    <div class="card-dots">
+                        <div class="dot dot-red"></div>
+                        <div class="dot dot-orange"></div>
                     </div>
                 </div>
 
-                <!-- VIEW 2: Loan Manager -->
-                <div id="viewLoans" class="flex-column h-100 d-none">
-                    <h4 class="mb-4 text-center" style="color: var(--danger-glow)">Loan Tracker</h4>
-                    <small class="text-muted text-center mb-3">Check box if paid back. Paid loans are removed from bill.</small>
-                    
-                    <div id="loanListContainer" style="flex-grow: 1; overflow-y: auto;">
-                        <!-- Loans injected by JS -->
-                    </div>
-                </div>
-
-                <!-- Bottom Navigation -->
-                <div class="panel-nav">
-                    <div class="nav-arrow" onclick="switchPanel()"><i class="fas fa-chevron-left"></i></div>
-                    <small class="text-muted align-self-center">Switch View</small>
-                    <div class="nav-arrow" onclick="switchPanel()"><i class="fas fa-chevron-right"></i></div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- COLUMN 3: THE BILL -->
-        <div class="col-lg-4">
-            <div class="glass-panel p-0" style="background: transparent; border: none; box-shadow: none; overflow: visible;">
-                <div class="bill-container">
-                    <div class="text-center mb-3">
-                        <h3 style="letter-spacing: 2px;">MONTHLY BILL</h3>
-                        <small id="billDateRange">November 2023</small>
-                        <div style="border-bottom: 1px dashed #000; margin-top: 10px;"></div>
+                <!-- CALENDAR (Intro Animation Delay 0.2s) -->
+                <div class="glass-panel position-relative intro-animate" style="animation-delay: 0.2s;">
+                    <div id="calendarStack">
+                        <!-- Slides injected by JS -->
                     </div>
 
-                    <div id="billList" style="flex-grow: 1; overflow-y: auto;">
-                        <!-- Expenses injected here -->
+                    <div class="calendar-controls">
+                        <button class="btn btn-sm nav-arrow border-0 bg-transparent" onclick="changeMonth(-1)"><i
+                                class="fas fa-chevron-left"></i></button>
+                        <h4 id="calendarMonthLabel" class="m-0">Month Year</h4>
+                        <button class="btn btn-sm nav-arrow border-0 bg-transparent" onclick="changeMonth(1)"><i
+                                class="fas fa-chevron-right"></i></button>
                     </div>
 
-                    <div class="bill-total">
-                        <span>TOTAL</span>
-                        <span id="billTotalAmount">$0.00</span>
-                    </div>
-                    <div class="text-center mt-2" style="font-size: 0.7rem; color: #555;">
-                        THANK YOU FOR TRACKING<br>
-                        <i class="fas fa-barcode" style="font-size: 2rem; margin-top:5px;"></i>
+                    <div class="mt-2 text-center pb-1">
+                        <small class="text-muted d-block" style="font-size: 0.75rem;">Select a date to Add/Edit
+                            expenses</small>
                     </div>
                 </div>
             </div>
-        </div>
 
-    </div>
-</div>
+            <!-- COLUMN 2: SWITCHABLE (STATS / LOANS) (Intro Animation Delay 0.3s) -->
+            <div class="col-lg-4">
+                <div class="glass-panel intro-animate" style="animation-delay: 0.3s;">
+                    <div id="viewsWrapper">
+                        <div id="viewAnalysis" class="view-panel panel-visible align-items-center">
+                            <h4 class="mb-4">ANALYSIS</h4>
+                            <div id="chartContainer" style="width: 100%; max-width: 300px; position: relative;">
+                                <canvas id="expenseChart"></canvas>
+                            </div>
+                            <div class="tag-legend mt-4"></div>
+                            <div class="mt-4 text-center p-3 w-100"
+                                style="background: var(--bg-dark); border-radius: 10px;">
+                                <h6 class="text-muted">TOP EXPENSE</h6>
+                                <h3 id="topTagDisplay" style="color: var(--highlight)">-</h3>
+                            </div>
+                        </div>
 
-<!-- Add/Edit Expense Modal -->
-<div class="modal fade" id="expenseModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Manage Expenses: <span id="modalDateDisplay" class="text-info"></span></h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        <div id="viewLoans" class="view-panel panel-hidden" style="transform: translateX(100%);">
+                            <h4 class="mb-4 text-center" style="color: var(--highlight)">LOAN TRACKER</h4>
+                            <small class="text-muted text-center mb-3">Check box if paid back. Paid loans are removed
+                                from bill.</small>
+                            <div id="loanListContainer" style="flex-grow: 1; overflow-y: auto; width: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="panel-nav">
+                        <div class="nav-arrow" onclick="switchPanel('prev')"><i class="fas fa-chevron-left"></i></div>
+                        <small class="text-muted align-self-center">SWITCH VIEW</small>
+                        <div class="nav-arrow" onclick="switchPanel('next')"><i class="fas fa-chevron-right"></i></div>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body">
-                
-                <h6 class="text-muted mb-2">Transactions on this day:</h6>
-                <ul class="list-group mb-3" id="modalExpenseList">
-                    <!-- List items injected JS -->
-                </ul>
 
-                <hr class="border-secondary">
-                
-                <h6 class="text-highlight" style="color: var(--highlight)"><i class="fas fa-plus-circle"></i> Add New</h6>
-                <form id="addExpenseForm" class="mt-3">
-                    <div class="mb-2">
-                        <input type="number" class="form-control" id="expAmount" placeholder="Cost (e.g. 15.50)" required step="0.01">
-                    </div>
-                    <div class="mb-2">
-                        <select class="form-select" id="expTag" onchange="toggleLoanInput()">
-                            <!-- Options injected by JS -->
-                        </select>
-                    </div>
-                    
-                    <!-- Loaned To Field -->
-                    <div class="mb-2 d-none" id="loanedToGroup">
-                        <input type="text" class="form-control text-warning" id="expLoanedTo" placeholder="Loaned to who?" style="border-color: #ff6b6b;">
-                    </div>
+            <!-- COLUMN 3: THE BILL (Intro Animation Delay 0.4s) -->
+            <div class="col-lg-4">
+                <!-- Updated Bill Wrapper: Allow growth, remove scroll -->
+                <div class="glass-panel p-0 intro-animate"
+                    style="animation-delay: 0.4s; background: transparent; border: none; box-shadow: none; overflow: visible; height: auto; min-height: 90vh;">
+                    <div class="bill-container">
+                        <div class="text-center mb-3">
+                            <h3 style="letter-spacing: 2px;">MONTHLY BILL</h3>
+                            <small id="billDateRange">November 2023</small>
+                            <div style="border-bottom: 1px dashed #000; margin-top: 10px;"></div>
+                        </div>
+                        <!-- Updated List: Removed scroll style -->
+                        <div id="billList" style="flex-grow: 1;"></div>
 
-                    <div class="mb-3">
-                        <input type="text" class="form-control" id="expDesc" placeholder="Description (optional)">
+                        <div class="bill-total">
+                            <span>TOTAL</span>
+                            <span id="billTotalAmount">$0.00</span>
+                        </div>
+                        <div class="text-center mt-2" style="font-size: 0.7rem; color: #444;">
+                            THANK YOU FOR TRACKING<br>
+                            <i class="fas fa-barcode" style="font-size: 2rem; margin-top:5px;"></i>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100" style="background: var(--accent); border:none;">Add to Bill</button>
-                </form>
+                </div>
             </div>
+
         </div>
     </div>
-</div>
 
-<!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Add/Edit Expense Modal -->
+    <div class="modal fade" id="expenseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Manage Expenses: <span id="modalDateDisplay" class="text-info"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6 class="text-muted mb-2">Transactions on this day:</h6>
+                    <ul class="list-group mb-3" id="modalExpenseList"></ul>
+                    <hr class="border-secondary">
+                    <h6 class="text-highlight" style="color: var(--highlight)"><i class="fas fa-plus-circle"></i> Add
+                        New</h6>
+                    <form id="addExpenseForm" class="mt-3">
+                        <div class="mb-2">
+                            <input type="number" class="form-control" id="expAmount" placeholder="Cost (e.g. 15.50)"
+                                required step="0.01">
+                        </div>
+                        <div class="mb-2">
+                            <select class="form-select" id="expTag" onchange="toggleLoanInput()"></select>
+                        </div>
+                        <div class="mb-2 d-none" id="loanedToGroup">
+                            <input type="text" class="form-control text-warning" id="expLoanedTo"
+                                placeholder="Loaned to who?" style="border-color: #ff6b6b;">
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="expDesc" placeholder="Description (optional)">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100"
+                            style="background: var(--accent); border:none;">Add to Bill</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<script>
-    // --- CONFIGURATION ---
-    const TAGS = {
-        Food: { color: '#ff9f43', icon: 'fa-utensils' },
-        Travel: { color: '#54a0ff', icon: 'fa-plane' },
-        Study: { color: '#00d2d3', icon: 'fa-book' },
-        Fun: { color: '#a55eea', icon: 'fa-gamepad' },
-        Electronics: { color: '#5f27cd', icon: 'fa-laptop' },
-        Loaned: { color: '#ff6b6b', icon: 'fa-hand-holding-usd' },
-        Other: { color: '#8395a7', icon: 'fa-tag' }
-    };
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-    // --- STATE ---
-    let expenses = JSON.parse(localStorage.getItem('expenseTrackerData')) || [];
-    let currentDate = new Date();
-    let selectedDate = null;
-    let expenseChartInstance = null;
-    let currentPanel = 'analysis'; // 'analysis' or 'loans'
+    <script>
+        // --- CONFIGURATION ---
+        const TAGS = {
+            Food: { color: '#e67e22', icon: 'fa-utensils' },
+            Travel: { color: '#2980b9', icon: 'fa-plane' },
+            Study: { color: '#16a085', icon: 'fa-book' },
+            Fun: { color: '#8e44ad', icon: 'fa-gamepad' },
+            Electronics: { color: '#2c3e50', icon: 'fa-laptop' },
+            Loaned: { color: '#c0392b', icon: 'fa-hand-holding-usd' },
+            Other: { color: '#7f8c8d', icon: 'fa-tag' }
+        };
 
-    // --- INIT ---
-    document.addEventListener('DOMContentLoaded', () => {
-        initTags();
-        renderCalendar();
-        updateUI();
-    });
+        // --- STATE ---
+        let expenses = JSON.parse(localStorage.getItem('expenseTrackerData')) || [];
+        let monthlyTarget = parseFloat(localStorage.getItem('monthlyTarget')) || 500;
 
-    function initTags() {
-        const select = document.getElementById('expTag');
-        const legend = document.querySelector('.tag-legend');
-        
-        Object.keys(TAGS).forEach(tag => {
-            const opt = document.createElement('option');
-            opt.value = tag;
-            opt.innerHTML = tag;
-            select.appendChild(opt);
+        let currentDate = new Date();
+        let selectedDate = null;
+        let expenseChartInstance = null;
+        let currentPanel = 'analysis';
+        let isPanelAnimating = false;
+        let isCalendarAnimating = false;
+        let currentCalendarView = null;
 
-            legend.innerHTML += `
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Init Target Input
+            document.getElementById('targetInput').value = monthlyTarget;
+            document.getElementById('targetInput').addEventListener('input', (e) => {
+                monthlyTarget = parseFloat(e.target.value) || 0;
+                localStorage.setItem('monthlyTarget', monthlyTarget);
+                updateTargetUI();
+            });
+
+            initTags();
+            // Initial Calendar Render
+            currentCalendarView = createCalendarView(currentDate);
+            currentCalendarView.classList.add('panel-visible');
+            document.getElementById('calendarStack').appendChild(currentCalendarView);
+            updateDateLabels();
+
+            updateUI();
+
+            // Event Delegation for Calendar Clicks
+            document.getElementById('calendarStack').addEventListener('click', (e) => {
+                const dayEl = e.target.closest('.calendar-day');
+                if (dayEl && !dayEl.classList.contains('empty')) {
+                    openModal(dayEl.dataset.date);
+                }
+            });
+        });
+
+        function initTags() {
+            const select = document.getElementById('expTag');
+            const legend = document.querySelector('.tag-legend');
+
+            Object.keys(TAGS).forEach(tag => {
+                const opt = document.createElement('option');
+                opt.value = tag;
+                opt.innerHTML = tag;
+                select.appendChild(opt);
+
+                legend.innerHTML += `
                 <div class="tag-badge" style="color: ${TAGS[tag].color}; border: 1px solid ${TAGS[tag].color}">
                     <i class="fas ${TAGS[tag].icon}"></i> ${tag}
                 </div>
             `;
-        });
-    }
-
-    // --- PANEL SWITCHING ---
-    function switchPanel() {
-        const analysisView = document.getElementById('viewAnalysis');
-        const loansView = document.getElementById('viewLoans');
-        
-        if (currentPanel === 'analysis') {
-            analysisView.classList.remove('d-flex');
-            analysisView.classList.add('d-none');
-            loansView.classList.remove('d-none');
-            loansView.classList.add('d-flex');
-            currentPanel = 'loans';
-        } else {
-            loansView.classList.remove('d-flex');
-            loansView.classList.add('d-none');
-            analysisView.classList.remove('d-none');
-            analysisView.classList.add('d-flex');
-            currentPanel = 'analysis';
-        }
-    }
-
-    // --- NEW: Toggle Loan Input ---
-    function toggleLoanInput() {
-        const tag = document.getElementById('expTag').value;
-        const loanGroup = document.getElementById('loanedToGroup');
-        if(tag === 'Loaned') {
-            loanGroup.classList.remove('d-none');
-            document.getElementById('expLoanedTo').required = true;
-        } else {
-            loanGroup.classList.add('d-none');
-            document.getElementById('expLoanedTo').required = false;
-            document.getElementById('expLoanedTo').value = '';
-        }
-    }
-
-    // --- CORE ---
-    function save() {
-        localStorage.setItem('expenseTrackerData', JSON.stringify(expenses));
-        updateUI();
-    }
-
-    function updateUI() {
-        renderCalendarGrid();
-        updateBill();
-        updateChart();
-        renderLoanList();
-    }
-
-    // --- CALENDAR ---
-    function renderCalendar() {
-        const monthYear = document.getElementById('monthYearDisplay');
-        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        monthYear.innerText = `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
-        document.getElementById('billDateRange').innerText = monthYear.innerText;
-        renderCalendarGrid();
-    }
-
-    function renderCalendarGrid() {
-        const grid = document.getElementById('calendarGrid');
-        grid.innerHTML = '';
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        const firstDayIndex = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-        for (let i = 0; i < firstDayIndex; i++) {
-            const div = document.createElement('div');
-            div.classList.add('calendar-day', 'empty');
-            grid.appendChild(div);
+            });
         }
 
-        for (let i = 1; i <= daysInMonth; i++) {
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-            const div = document.createElement('div');
-            div.classList.add('calendar-day');
-            div.innerText = i;
-            
-            // Check for expenses (Even paid loans stay in calendar)
-            const dayExpenses = expenses.filter(e => e.date === dateStr);
-            if (dayExpenses.length > 0) div.classList.add('has-expense');
-            
-            div.onclick = () => openModal(dateStr);
-            grid.appendChild(div);
-        }
-    }
+        // --- TARGET UI UPDATE ---
+        function updateTargetUI() {
+            const billExpenses = getBillableExpenses(); // Only active expenses
+            let totalSpent = 0;
+            billExpenses.forEach(e => totalSpent += e.amount);
 
-    function changeMonth(direction) {
-        currentDate.setMonth(currentDate.getMonth() + direction);
-        renderCalendar();
-        updateUI();
-    }
+            const progressBar = document.getElementById('targetProgressBar');
+            const marginDisplay = document.getElementById('targetMarginDisplay');
 
-    // --- LOAN MANAGEMENT LOGIC ---
-    function toggleLoanPaid(id) {
-        const expense = expenses.find(e => e.id === id);
-        if (expense) {
-            expense.isPaid = !expense.isPaid; // Toggle status
-            save(); // Triggers UI update (Bill removes it, Chart removes it)
-        }
-    }
+            // Progress Calculation
+            let percentage = 0;
+            if (monthlyTarget > 0) {
+                percentage = (totalSpent / monthlyTarget) * 100;
+                if (percentage > 100) percentage = 100;
+            }
+            progressBar.style.width = `${percentage}%`;
 
-    function renderLoanList() {
-        const container = document.getElementById('loanListContainer');
-        const monthExpenses = getAllMonthExpenses(); // Get ALL expenses including paid ones
-        
-        // Filter only Loans
-        const loans = monthExpenses.filter(e => e.tag === 'Loaned');
-        
-        container.innerHTML = '';
-        if (loans.length === 0) {
-            container.innerHTML = '<div class="text-center text-muted mt-5">No loans this month</div>';
-            return;
+            // Margin Display
+            const diff = monthlyTarget - totalSpent;
+            if (diff >= 0) {
+                marginDisplay.innerHTML = `<i class="fas fa-check-circle margin-good"></i> <span class="margin-good">Under by $${diff.toFixed(2)}</span>`;
+            } else {
+                marginDisplay.innerHTML = `<i class="fas fa-exclamation-circle margin-bad"></i> <span class="margin-bad">Over by $${Math.abs(diff).toFixed(2)}</span>`;
+            }
         }
 
-        loans.forEach(loan => {
-            const isPaid = loan.isPaid || false;
-            const item = document.createElement('div');
-            item.className = `loan-item ${isPaid ? 'paid' : ''}`;
-            
-            const name = loan.loanedTo ? loan.loanedTo : 'Unknown';
-            const dateShort = loan.date.split('-').slice(1).join('/');
+        // --- CALENDAR ANIMATION LOGIC ---
+        function changeMonth(direction) {
+            if (isCalendarAnimating) return;
+            isCalendarAnimating = true;
 
-            item.innerHTML = `
+            currentDate.setMonth(currentDate.getMonth() + direction);
+
+            const label = document.getElementById('calendarMonthLabel');
+            label.classList.remove('label-anim');
+            void label.offsetWidth;
+            label.classList.add('label-anim');
+            updateDateLabels();
+
+            let outDest = direction > 0 ? '-120%' : '120%';
+            let inStart = direction > 0 ? '120%' : '-120%';
+
+            const newView = createCalendarView(currentDate);
+            newView.classList.add('panel-hidden');
+            newView.style.transform = `translateX(${inStart})`;
+            newView.style.zIndex = '2';
+
+            document.getElementById('calendarStack').appendChild(newView);
+
+            void newView.offsetWidth;
+
+            const oldView = currentCalendarView;
+            oldView.style.zIndex = '1';
+
+            requestAnimationFrame(() => {
+                newView.classList.remove('panel-hidden');
+                newView.classList.add('panel-visible');
+                newView.style.transform = 'translateX(0)';
+
+                oldView.style.transform = `translateX(${outDest})`;
+                oldView.style.opacity = '0';
+            });
+
+            setTimeout(() => {
+                oldView.remove();
+                currentCalendarView = newView;
+                isCalendarAnimating = false;
+                updateUI();
+            }, 600);
+        }
+
+        function createCalendarView(date) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'calendar-slide';
+
+            const year = date.getFullYear();
+
+            const daysHeaderHtml = `
+            <div class="calendar-grid">
+                <div class="day-name">Sun</div><div class="day-name">Mon</div><div class="day-name">Tue</div>
+                <div class="day-name">Wed</div><div class="day-name">Thu</div><div class="day-name">Fri</div>
+                <div class="day-name">Sat</div>
+            </div>
+        `;
+
+            let gridHtml = '<div class="calendar-grid mt-2">';
+
+            const firstDayIndex = new Date(year, date.getMonth(), 1).getDay();
+            const daysInMonth = new Date(year, date.getMonth() + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayIndex; i++) {
+                gridHtml += '<div class="calendar-day empty"></div>';
+            }
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dateStr = `${year}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                const dayExpenses = expenses.filter(e => e.date === dateStr);
+                const hasExpenseClass = dayExpenses.length > 0 ? 'has-expense' : '';
+
+                gridHtml += `<div class="calendar-day ${hasExpenseClass}" data-date="${dateStr}">${i}</div>`;
+            }
+            gridHtml += '</div>';
+
+            wrapper.innerHTML = daysHeaderHtml + gridHtml;
+            return wrapper;
+        }
+
+        function updateDateLabels() {
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const text = `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+            document.getElementById('billDateRange').innerText = text;
+            document.getElementById('calendarMonthLabel').innerText = text;
+        }
+
+        // --- PANEL SWITCH LOGIC ---
+        function switchPanel(direction) {
+            if (isPanelAnimating) return;
+
+            const analysisEl = document.getElementById('viewAnalysis');
+            const loansEl = document.getElementById('viewLoans');
+
+            let outgoing, incoming, outDest, inStart;
+
+            if (currentPanel === 'analysis') {
+                outgoing = analysisEl;
+                incoming = loansEl;
+                currentPanel = 'loans';
+            } else {
+                outgoing = loansEl;
+                incoming = analysisEl;
+                currentPanel = 'analysis';
+            }
+
+            if (direction === 'next') {
+                outDest = '-120%';
+                inStart = '120%';
+            } else {
+                outDest = '120%';
+                inStart = '-120%';
+            }
+
+            isPanelAnimating = true;
+
+            incoming.style.transition = 'none';
+            incoming.style.transform = `translateX(${inStart})`;
+            incoming.classList.remove('panel-hidden');
+            incoming.style.opacity = '1';
+            incoming.style.zIndex = '2';
+            outgoing.style.zIndex = '1';
+
+            void incoming.offsetWidth;
+
+            incoming.style.transition = '';
+            outgoing.style.transition = '';
+
+            requestAnimationFrame(() => {
+                outgoing.style.transform = `translateX(${outDest})`;
+                outgoing.style.opacity = '0';
+                incoming.style.transform = 'translateX(0)';
+            });
+
+            setTimeout(() => {
+                outgoing.classList.add('panel-hidden');
+                outgoing.style.zIndex = '0';
+                isPanelAnimating = false;
+            }, 600);
+        }
+
+        // --- OTHER UI LOGIC ---
+        function toggleLoanInput() {
+            const tag = document.getElementById('expTag').value;
+            const loanGroup = document.getElementById('loanedToGroup');
+            if (tag === 'Loaned') {
+                loanGroup.classList.remove('d-none');
+                document.getElementById('expLoanedTo').required = true;
+            } else {
+                loanGroup.classList.add('d-none');
+                document.getElementById('expLoanedTo').required = false;
+                document.getElementById('expLoanedTo').value = '';
+            }
+        }
+
+        function save() {
+            localStorage.setItem('expenseTrackerData', JSON.stringify(expenses));
+            updateUI();
+        }
+
+        function updateUI() {
+            // Refresh Grid Highlights
+            if (currentCalendarView) {
+                const days = currentCalendarView.querySelectorAll('.calendar-day:not(.empty)');
+                days.forEach(day => {
+                    const dateStr = day.dataset.date;
+                    const hasExp = expenses.some(e => e.date === dateStr);
+                    if (hasExp) day.classList.add('has-expense');
+                    else day.classList.remove('has-expense');
+                });
+            }
+
+            updateBill();
+            updateChart();
+            renderLoanList();
+            updateTargetUI(); // Refresh Target
+        }
+
+        // --- LOAN MANAGEMENT LOGIC ---
+        function toggleLoanPaid(id) {
+            const expense = expenses.find(e => e.id === id);
+            if (expense) {
+                const checkbox = document.getElementById(`loan-chk-${id}`);
+                const row = checkbox.closest('.loan-item');
+
+                if (checkbox.classList.contains('checked')) {
+                    checkbox.classList.remove('checked');
+                    row.classList.remove('paid');
+                } else {
+                    checkbox.classList.add('checked');
+                    row.classList.add('paid');
+                }
+
+                checkbox.classList.remove('pop-anim');
+                void checkbox.offsetWidth;
+                checkbox.classList.add('pop-anim');
+
+                expense.isPaid = !expense.isPaid;
+
+                setTimeout(() => {
+                    save();
+                }, 500);
+            }
+        }
+
+        function renderLoanList() {
+            const container = document.getElementById('loanListContainer');
+            const monthExpenses = getAllMonthExpenses();
+            const loans = monthExpenses.filter(e => e.tag === 'Loaned');
+
+            container.innerHTML = '';
+            if (loans.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted mt-5">No loans this month</div>';
+                return;
+            }
+
+            loans.forEach(loan => {
+                const isPaid = loan.isPaid || false;
+                const item = document.createElement('div');
+                item.className = `loan-item ${isPaid ? 'paid' : ''}`;
+
+                const name = loan.loanedTo ? loan.loanedTo : 'Unknown';
+                const dateShort = loan.date.split('-').slice(1).join('/');
+
+                item.innerHTML = `
                 <div class="d-flex flex-column loan-text">
-                    <span style="color:white; font-weight:bold;">${name}</span>
+                    <span style="font-weight:bold; color:var(--text-main);">${name}</span>
                     <small style="color:var(--text-secondary)">${dateShort} - $${loan.amount}</small>
                 </div>
-                <div class="custom-checkbox ${isPaid ? 'checked' : ''}" onclick="toggleLoanPaid(${loan.id})"></div>
+                <div id="loan-chk-${loan.id}" class="custom-checkbox ${isPaid ? 'checked' : ''}" onclick="toggleLoanPaid(${loan.id})"></div>
             `;
-            container.appendChild(item);
-        });
-    }
+                container.appendChild(item);
+            });
+        }
 
-    // --- MODAL ---
-    const modal = new bootstrap.Modal(document.getElementById('expenseModal'));
+        // --- MODAL ---
+        const modal = new bootstrap.Modal(document.getElementById('expenseModal'));
 
-    function openModal(dateStr) {
-        selectedDate = dateStr;
-        document.getElementById('modalDateDisplay').innerText = dateStr;
-        document.getElementById('addExpenseForm').reset();
-        toggleLoanInput(); 
-        renderModalList();
-        modal.show();
-    }
+        function openModal(dateStr) {
+            selectedDate = dateStr;
+            document.getElementById('modalDateDisplay').innerText = dateStr;
+            document.getElementById('addExpenseForm').reset();
+            toggleLoanInput();
+            renderModalList();
+            modal.show();
+        }
 
-    function renderModalList() {
-        const list = document.getElementById('modalExpenseList');
-        list.innerHTML = '';
-        const dayExpenses = expenses.filter(e => e.date === selectedDate);
-        if(dayExpenses.length === 0) list.innerHTML = '<li class="list-group-item bg-dark text-muted">No expenses yet.</li>';
+        function renderModalList() {
+            const list = document.getElementById('modalExpenseList');
+            list.innerHTML = '';
+            const dayExpenses = expenses.filter(e => e.date === selectedDate);
+            if (dayExpenses.length === 0) list.innerHTML = '<li class="list-group-item text-muted">No expenses yet.</li>';
 
-        dayExpenses.forEach(exp => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item d-flex justify-content-between align-items-center bg-dark text-white border-secondary';
-            
-            let tagDisplay = exp.tag;
-            if(exp.tag === 'Loaned' && exp.loanedTo) tagDisplay += ` to ${exp.loanedTo}`;
-            if(exp.isPaid) tagDisplay += " (PAID)";
+            dayExpenses.forEach(exp => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center bg-light text-dark border-secondary';
 
-            li.innerHTML = `
+                let tagDisplay = exp.tag;
+                if (exp.tag === 'Loaned' && exp.loanedTo) tagDisplay += ` to ${exp.loanedTo}`;
+                if (exp.isPaid) tagDisplay += " (PAID)";
+
+                li.innerHTML = `
                 <div>
                     <i class="fas ${TAGS[exp.tag].icon}" style="color: ${TAGS[exp.tag].color}"></i>
                     <strong>${exp.amount}</strong> 
@@ -623,144 +1113,144 @@
                     <i class="fas fa-trash"></i>
                 </button>
             `;
-            list.appendChild(li);
+                list.appendChild(li);
+            });
+        }
+
+        document.getElementById('addExpenseForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const amt = parseFloat(document.getElementById('expAmount').value);
+            const tag = document.getElementById('expTag').value;
+            const desc = document.getElementById('expDesc').value;
+            const loanedTo = document.getElementById('expLoanedTo').value;
+
+            if (!amt || !selectedDate) return;
+
+            const newExpense = {
+                id: Date.now(),
+                date: selectedDate,
+                amount: amt,
+                tag: tag,
+                loanedTo: (tag === 'Loaned') ? loanedTo : null,
+                isPaid: false,
+                desc: desc
+            };
+
+            expenses.push(newExpense);
+            save();
+
+            document.getElementById('expAmount').value = '';
+            document.getElementById('expDesc').value = '';
+            document.getElementById('expLoanedTo').value = '';
+            renderModalList();
         });
-    }
 
-    document.getElementById('addExpenseForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const amt = parseFloat(document.getElementById('expAmount').value);
-        const tag = document.getElementById('expTag').value;
-        const desc = document.getElementById('expDesc').value;
-        const loanedTo = document.getElementById('expLoanedTo').value;
+        function deleteExpense(id) {
+            expenses = expenses.filter(e => e.id !== id);
+            save();
+            renderModalList();
+        }
 
-        if (!amt || !selectedDate) return;
+        // --- BILL & CHART HELPERS ---
 
-        const newExpense = {
-            id: Date.now(),
-            date: selectedDate,
-            amount: amt,
-            tag: tag,
-            loanedTo: (tag === 'Loaned') ? loanedTo : null,
-            isPaid: false, // Default unpaid
-            desc: desc
-        };
+        function getAllMonthExpenses() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            return expenses.filter(e => {
+                const d = new Date(e.date);
+                return d.getFullYear() === year && d.getMonth() === month;
+            });
+        }
 
-        expenses.push(newExpense);
-        save();
-        
-        document.getElementById('expAmount').value = '';
-        document.getElementById('expDesc').value = '';
-        document.getElementById('expLoanedTo').value = '';
-        renderModalList();
-    });
+        function getBillableExpenses() {
+            const all = getAllMonthExpenses();
+            return all.filter(e => {
+                if (e.tag === 'Loaned' && e.isPaid) return false;
+                return true;
+            });
+        }
 
-    function deleteExpense(id) {
-        expenses = expenses.filter(e => e.id !== id);
-        save();
-        renderModalList();
-    }
+        function updateBill() {
+            const list = document.getElementById('billList');
+            const totalEl = document.getElementById('billTotalAmount');
+            const billExpenses = getBillableExpenses();
 
-    // --- BILL & CHART HELPERS ---
-    
-    // 1. Get ALL expenses for the month (for Calendar & Loan List)
-    function getAllMonthExpenses() {
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth(); 
-        return expenses.filter(e => {
-            const d = new Date(e.date);
-            return d.getFullYear() === year && d.getMonth() === month;
-        });
-    }
+            billExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    // 2. Get ACTIVE expenses (Non-loans OR Unpaid Loans) for Bill & Chart
-    function getBillableExpenses() {
-        const all = getAllMonthExpenses();
-        return all.filter(e => {
-            if (e.tag === 'Loaned' && e.isPaid) return false; // Exclude paid loans
-            return true;
-        });
-    }
+            list.innerHTML = '';
+            let total = 0;
 
-    function updateBill() {
-        const list = document.getElementById('billList');
-        const totalEl = document.getElementById('billTotalAmount');
-        const billExpenses = getBillableExpenses(); // Use filtered list
+            billExpenses.forEach((exp, index) => {
+                total += exp.amount;
+                const item = document.createElement('div');
+                item.className = 'bill-item bill-item-animate';
+                item.style.animationDelay = `${index * 0.05}s`;
 
-        billExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+                const day = exp.date.split('-')[2];
 
-        list.innerHTML = '';
-        let total = 0;
+                let displayTag = exp.tag.toUpperCase();
+                if (exp.tag === 'Loaned' && exp.loanedTo) {
+                    displayTag += ` (${exp.loanedTo.toUpperCase()})`;
+                } else if (['Food', 'Study', 'Fun'].includes(exp.tag) && exp.desc) {
+                    displayTag += ` (${exp.desc.toUpperCase()})`;
+                }
 
-        billExpenses.forEach(exp => {
-            total += exp.amount;
-            const item = document.createElement('div');
-            item.className = 'bill-item';
-            const day = exp.date.split('-')[2]; 
-
-            let displayTag = exp.tag.toUpperCase();
-            if(exp.tag === 'Loaned' && exp.loanedTo) {
-                displayTag += ` (${exp.loanedTo.toUpperCase()})`;
-            }
-            
-            item.innerHTML = `
+                item.innerHTML = `
                 <span class="d-flex" style="max-width: 75%">
-                    <span style="display:inline-block; width:25px; min-width:25px; color:#666;">${day}</span>
-                    <span class="text-truncate" style="color: ${TAGS[exp.tag].color}">${displayTag}</span>
+                    <span style="display:inline-block; width:25px; min-width:25px; color:#444;">${day}</span>
+                    <span class="text-truncate" style="color: ${TAGS[exp.tag].color}; text-shadow: 0px 0px 1px rgba(0,0,0,0.1);">${displayTag}</span>
                 </span>
-                <span style="white-space: nowrap;">$${exp.amount.toFixed(2)}</span>
+                <span style="white-space: nowrap; color: #000;">$${exp.amount.toFixed(2)}</span>
             `;
-            list.appendChild(item);
-        });
+                list.appendChild(item);
+            });
 
-        totalEl.innerText = `$${total.toFixed(2)}`;
-    }
+            totalEl.innerText = `$${total.toFixed(2)}`;
+        }
 
-    function updateChart() {
-        const ctx = document.getElementById('expenseChart').getContext('2d');
-        const billExpenses = getBillableExpenses(); // Use filtered list (Paid loans removed)
-        const tagTotals = {};
-        Object.keys(TAGS).forEach(t => tagTotals[t] = 0);
-        
-        billExpenses.forEach(e => {
-            if(tagTotals[e.tag] !== undefined) tagTotals[e.tag] += e.amount;
-        });
+        function updateChart() {
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+            const billExpenses = getBillableExpenses();
+            const tagTotals = {};
+            Object.keys(TAGS).forEach(t => tagTotals[t] = 0);
 
-        const data = Object.values(tagTotals);
-        const labels = Object.keys(tagTotals);
-        const colors = labels.map(l => TAGS[l].color);
+            billExpenses.forEach(e => {
+                if (tagTotals[e.tag] !== undefined) tagTotals[e.tag] += e.amount;
+            });
 
-        let maxVal = 0; let maxTag = "None";
-        labels.forEach((l, i) => {
-            if(data[i] > maxVal) { maxVal = data[i]; maxTag = l; }
-        });
-        document.getElementById('topTagDisplay').innerText = maxTag;
+            const data = Object.values(tagTotals);
+            const labels = Object.keys(tagTotals);
+            const colors = labels.map(l => TAGS[l].color);
 
-        if (expenseChartInstance) expenseChartInstance.destroy();
+            let maxVal = 0; let maxTag = "None";
+            labels.forEach((l, i) => {
+                if (data[i] > maxVal) { maxVal = data[i]; maxTag = l; }
+            });
+            document.getElementById('topTagDisplay').innerText = maxTag;
 
-        expenseChartInstance = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: data,
-                    backgroundColor: colors,
-                    borderColor: '#1e1e24',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                cutout: '70%'
-            }
-        });
-    }
+            if (expenseChartInstance) expenseChartInstance.destroy();
 
-    function viewHistory() {
-        alert("This view currently shows live data. Use the arrows above the calendar to navigate previous months!");
-    }
-</script>
+            expenseChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderColor: '#ffffff', /* Changed to white for new theme */
+                        borderWidth: 2,
+                        borderRadius: 20
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    cutout: '70%'
+                }
+            });
+        }
+    </script>
 </body>
+
 </html>
