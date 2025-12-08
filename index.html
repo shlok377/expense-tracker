@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#dce6fe">
     <title>Expense Tracker</title>
 
     <!-- Bootstrap 5 CSS -->
@@ -65,26 +66,73 @@
             position: relative;
         }
 
-        /* --- TARGET CARD (UPDATED) --- */
-        .target-card {
-            /* Gradient: Black to Muted Blue (Flipped 180deg) */
-            background: linear-gradient(315deg, #000000 0%, #5f709a 100%);
+        /* --- CARD STACK CONTAINER --- */
+        .cards-stack {
+            position: relative;
+            width: 100%;
+            /* Aspect ratio for credit card ID-1 size + some space for the peek */
+            padding-bottom: 75%;
+            /* Approximate aspect ratio height + offset */
+            margin-bottom: 20px;
+            cursor: pointer;
+            perspective: 1000px;
+        }
+
+        /* --- GENERIC CARD STYLES --- */
+        .credit-card {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
             border-radius: 16px;
             padding: 25px;
             color: white;
-            position: relative;
             overflow: hidden;
             box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 20px;
-
             aspect-ratio: 1.586 / 1;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+
+            /* Animation Props */
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-origin: bottom center;
         }
 
-        .target-card::before {
+        /* Front State */
+        .credit-card.active {
+            z-index: 10;
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Back State (Peeking from bottom) */
+        .credit-card.inactive {
+            z-index: 1;
+            transform: translateY(35px) scale(0.92);
+            /* Visible at bottom */
+            opacity: 0.6;
+            filter: brightness(0.7);
+            pointer-events: none;
+            /* Prevent clicks on inputs when in back */
+        }
+
+        /* --- SPECIFIC CARD THEMES --- */
+
+        /* Expense Card (Blue/Black) */
+        .card-expense {
+            background: linear-gradient(135deg, #000000 0%, #7e90ba 100%);
+        }
+
+        /* Income Card (Green/Black - New Theme) */
+        .card-income {
+            background: linear-gradient(135deg, #000000 0%, #1e5f3e 100%);
+        }
+
+        /* Card Decoration */
+        .credit-card::before {
             content: '';
             position: absolute;
             top: -50%;
@@ -131,8 +179,7 @@
             font-family: 'Courier New', Courier, monospace;
             font-size: 1.1rem;
             letter-spacing: 3px;
-            color: #c2cff2;
-            /* Soft Blue text */
+            color: rgba(255, 255, 255, 0.7);
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
             z-index: 2;
             margin-bottom: 5px;
@@ -175,9 +222,33 @@
             margin: 0;
         }
 
+        .sub-input-group {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 5px;
+        }
+
+        .sub-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            width: 70px;
+            margin-left: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .sub-input:focus {
+            outline: none;
+            border-bottom-color: white;
+        }
+
         .custom-progress {
             height: 6px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.2);
             border-radius: 3px;
             margin-top: 15px;
             margin-bottom: 10px;
@@ -185,14 +256,24 @@
             position: relative;
         }
 
-        .custom-progress-bar {
+        /* Expense Progress (Flipped Gradient) */
+        .progress-expense {
             height: 100%;
-            /* Gradient matching the lighter blues/accents */
-            background: linear-gradient(-90deg, #aec0f3, #7e90ba);
+            background: linear-gradient(-90deg, #c2cff2, #7e90ba);
             border-radius: 3px;
-            transition: width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: width 3s ease-in-out;
             width: 0%;
             box-shadow: 0 0 10px rgba(194, 207, 242, 0.5);
+        }
+
+        /* Income Progress (Green Gradient) */
+        .progress-income {
+            height: 100%;
+            background: linear-gradient(90deg, #2ed573, #7bed9f);
+            border-radius: 3px;
+            transition: width 3s ease-in-out;
+            width: 0%;
+            box-shadow: 0 0 10px rgba(46, 213, 115, 0.5);
         }
 
         .margin-indicator {
@@ -359,7 +440,7 @@
 
         /* --- UPDATED ANIMATIONS (Chilled & Bouncy) --- */
 
-        /* 1. Intro Animation: Chilled Pop (Super Slow) */
+        /* 1. Intro Animation: Chilled Pop */
         @keyframes introPop {
             0% {
                 opacity: 0;
@@ -373,8 +454,8 @@
         }
 
         .intro-animate {
-            /* Ease Out Back for the bounce, slowed down to 2.5s */
-            animation: introPop 2.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            /* Ease Out Back for the bounce */
+            animation: introPop 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
             opacity: 0;
         }
 
@@ -499,6 +580,45 @@
             color: #000;
         }
 
+        /* Profit/Loss Section */
+        .profit-loss-section {
+            margin-top: 15px;
+            border-top: 1px dashed var(--border-soft);
+            padding-top: 15px;
+        }
+
+        .pl-status {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .pl-progress-container {
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .pl-bar {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        .pl-profit {
+            background: var(--success-glow);
+        }
+
+        .pl-loss {
+            background: var(--danger-glow);
+        }
+
+        .pl-neutral {
+            background: var(--text-secondary);
+        }
+
         /* --- Modal --- */
         .modal-content {
             background-color: var(--bg-card);
@@ -520,6 +640,38 @@
             color: var(--text-main);
             box-shadow: 0 0 5px var(--accent);
             border-color: var(--accent);
+        }
+
+        /* Toggle Buttons in Modal */
+        .type-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .type-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border-soft);
+            border-radius: 10px;
+            background: var(--bg-dark);
+            color: var(--text-secondary);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .type-btn.active.expense {
+            background: var(--danger-glow);
+            color: white;
+            border-color: var(--danger-glow);
+        }
+
+        .type-btn.active.income {
+            background: var(--success-glow);
+            color: white;
+            border-color: var(--success-glow);
         }
 
         /* Custom Scrollbar */
@@ -586,39 +738,79 @@
     <div class="container-fluid py-4">
         <div class="row g-4">
 
-            <!-- COLUMN 1: TARGET + CALENDAR -->
+            <!-- COLUMN 1: CARDS + CALENDAR -->
             <div class="col-lg-4">
 
-                <!-- NEW TARGET CARD (Intro Animation Delay 0.1s) -->
-                <div class="target-card intro-animate" style="animation-delay: 0.1s;">
-                    <!-- Top content -->
-                    <div class="card-top-content">
-                        <div class="text-white-50 small mb-1" style="font-family: sans-serif; letter-spacing: 1px;">
-                            MONTHLY TARGET</div>
-                        <div class="target-input-group">
-                            <span class="currency-symbol">$</span>
-                            <input type="number" id="targetInput" class="target-input" value="500" placeholder="0">
+                <!-- STACKED CARDS (Intro Animation Delay 0.1s) -->
+                <div class="cards-stack intro-animate" style="animation-delay: 0.1s;" onclick="switchCards()">
+
+                    <!-- CARD 1: EXPENSE (Front by default) -->
+                    <div id="cardExpense" class="credit-card card-expense active">
+                        <div class="card-top-content">
+                            <div class="text-white-50 small mb-1" style="font-family: sans-serif; letter-spacing: 1px;">
+                                MONTHLY SPEND LIMIT</div>
+                            <div class="target-input-group">
+                                <span class="currency-symbol">$</span>
+                                <input type="number" id="targetInput" class="target-input" value="500" placeholder="0"
+                                    onclick="event.stopPropagation()">
+                            </div>
+
+                            <div class="custom-progress">
+                                <div id="targetProgressBar" class="custom-progress-bar progress-expense"></div>
+                            </div>
+
+                            <div id="targetMarginDisplay" class="margin-indicator">
+                                <!-- Injected by JS -->
+                            </div>
                         </div>
 
-                        <div class="custom-progress">
-                            <div id="targetProgressBar" class="custom-progress-bar"></div>
+                        <div class="card-number">
+                            **** **** **** 4242
                         </div>
 
-                        <div id="targetMarginDisplay" class="margin-indicator">
-                            <!-- Injected by JS -->
+                        <div class="card-dots">
+                            <div class="dot dot-red"></div>
+                            <div class="dot dot-orange"></div>
                         </div>
                     </div>
 
-                    <!-- Bottom content -->
-                    <div class="card-number">
-                        **** **** **** 1397
+                    <!-- CARD 2: INCOME (Back by default) -->
+                    <div id="cardIncome" class="credit-card card-income inactive">
+                        <div class="card-top-content">
+                            <div class="text-white-50 small mb-1" style="font-family: sans-serif; letter-spacing: 1px;">
+                                MONTHLY EARNING TARGET</div>
+                            <div class="target-input-group">
+                                <span class="currency-symbol">$</span>
+                                <input type="number" id="incomeTargetInput" class="target-input" value="5000"
+                                    placeholder="0" onclick="event.stopPropagation()">
+                            </div>
+
+                            <!-- Auto-calculated Income (Read-onlyish) -->
+                            <div class="sub-input-group">
+                                <span>Earned: $</span>
+                                <span id="currentIncomeDisplay"
+                                    style="color:white; font-weight:bold; margin-left:5px;">0</span>
+                            </div>
+
+                            <div class="custom-progress">
+                                <div id="incomeProgressBar" class="custom-progress-bar progress-income"></div>
+                            </div>
+
+                            <div id="incomeMarginDisplay" class="margin-indicator">
+                                <!-- Injected by JS -->
+                            </div>
+                        </div>
+
+                        <div class="card-number">
+                            **** **** **** 8888
+                        </div>
+
+                        <div class="card-dots">
+                            <div class="dot dot-red"></div>
+                            <div class="dot dot-orange"></div>
+                        </div>
                     </div>
 
-                    <!-- Decor Dots -->
-                    <div class="card-dots">
-                        <div class="dot dot-red"></div>
-                        <div class="dot dot-orange"></div>
-                    </div>
                 </div>
 
                 <!-- CALENDAR (Intro Animation Delay 0.2s) -->
@@ -647,20 +839,20 @@
                 <div class="glass-panel intro-animate" style="animation-delay: 0.3s;">
                     <div id="viewsWrapper">
                         <div id="viewAnalysis" class="view-panel panel-visible align-items-center">
-                            <h4 class="mb-4">ANALYSIS</h4>
+                            <h4 class="mb-4">Analysis</h4>
                             <div id="chartContainer" style="width: 100%; max-width: 300px; position: relative;">
                                 <canvas id="expenseChart"></canvas>
                             </div>
                             <div class="tag-legend mt-4"></div>
                             <div class="mt-4 text-center p-3 w-100"
                                 style="background: var(--bg-dark); border-radius: 10px;">
-                                <h6 class="text-muted">TOP EXPENSE</h6>
+                                <h6 class="text-muted">Top Expense</h6>
                                 <h3 id="topTagDisplay" style="color: var(--highlight)">-</h3>
                             </div>
                         </div>
 
                         <div id="viewLoans" class="view-panel panel-hidden" style="transform: translateX(100%);">
-                            <h4 class="mb-4 text-center" style="color: var(--highlight)">LOAN TRACKER</h4>
+                            <h4 class="mb-4 text-center" style="color: var(--highlight)">Loan Tracker</h4>
                             <small class="text-muted text-center mb-3">Check box if paid back. Paid loans are removed
                                 from bill.</small>
                             <div id="loanListContainer" style="flex-grow: 1; overflow-y: auto; width: 100%;"></div>
@@ -669,7 +861,7 @@
 
                     <div class="panel-nav">
                         <div class="nav-arrow" onclick="switchPanel('prev')"><i class="fas fa-chevron-left"></i></div>
-                        <small class="text-muted align-self-center">SWITCH VIEW</small>
+                        <small class="text-muted align-self-center">Switch View</small>
                         <div class="nav-arrow" onclick="switchPanel('next')"><i class="fas fa-chevron-right"></i></div>
                     </div>
                 </div>
@@ -677,7 +869,6 @@
 
             <!-- COLUMN 3: THE BILL (Intro Animation Delay 0.4s) -->
             <div class="col-lg-4">
-                <!-- Updated Bill Wrapper: Allow growth, remove scroll -->
                 <div class="glass-panel p-0 intro-animate"
                     style="animation-delay: 0.4s; background: transparent; border: none; box-shadow: none; overflow: visible; height: auto; min-height: 90vh;">
                     <div class="bill-container">
@@ -686,13 +877,24 @@
                             <small id="billDateRange">November 2023</small>
                             <div style="border-bottom: 1px dashed #000; margin-top: 10px;"></div>
                         </div>
-                        <!-- Updated List: Removed scroll style -->
                         <div id="billList" style="flex-grow: 1;"></div>
 
                         <div class="bill-total">
-                            <span>TOTAL</span>
+                            <span>NET TOTAL</span>
                             <span id="billTotalAmount">$0.00</span>
                         </div>
+
+                        <!-- PROFIT/LOSS SECTION -->
+                        <div class="profit-loss-section">
+                            <div class="pl-status">
+                                <span id="plText">Neutral</span>
+                                <span id="plAmount"></span>
+                            </div>
+                            <div class="pl-progress-container">
+                                <div id="plBar" class="pl-bar pl-neutral" style="width: 0%"></div>
+                            </div>
+                        </div>
+
                         <div class="text-center mt-2" style="font-size: 0.7rem; color: #444;">
                             THANK YOU FOR TRACKING<br>
                             <i class="fas fa-barcode" style="font-size: 2rem; margin-top:5px;"></i>
@@ -709,32 +911,47 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Manage Expenses: <span id="modalDateDisplay" class="text-info"></span></h5>
+                    <h5 class="modal-title">Manage: <span id="modalDateDisplay" class="text-info"></span></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <h6 class="text-muted mb-2">Transactions on this day:</h6>
                     <ul class="list-group mb-3" id="modalExpenseList"></ul>
                     <hr class="border-secondary">
+
+                    <!-- TYPE TOGGLE -->
+                    <div class="type-toggle">
+                        <div class="type-btn active expense" onclick="toggleTransactionType('expense')">Expense</div>
+                        <div class="type-btn income" onclick="toggleTransactionType('income')">Income</div>
+                    </div>
+
                     <h6 class="text-highlight" style="color: var(--highlight)"><i class="fas fa-plus-circle"></i> Add
                         New</h6>
                     <form id="addExpenseForm" class="mt-3">
+                        <!-- Hidden Type Field -->
+                        <input type="hidden" id="transType" value="expense">
+
                         <div class="mb-2">
-                            <input type="number" class="form-control" id="expAmount" placeholder="Cost (e.g. 15.50)"
+                            <input type="number" class="form-control" id="expAmount" placeholder="Amount (e.g. 15.50)"
                                 required step="0.01">
                         </div>
-                        <div class="mb-2">
-                            <select class="form-select" id="expTag" onchange="toggleLoanInput()"></select>
+
+                        <!-- Expense Only Fields -->
+                        <div id="expenseFields">
+                            <div class="mb-2">
+                                <select class="form-select" id="expTag" onchange="toggleLoanInput()"></select>
+                            </div>
+                            <div class="mb-2 d-none" id="loanedToGroup">
+                                <input type="text" class="form-control text-warning" id="expLoanedTo"
+                                    placeholder="Loaned to who?" style="border-color: #ff6b6b;">
+                            </div>
                         </div>
-                        <div class="mb-2 d-none" id="loanedToGroup">
-                            <input type="text" class="form-control text-warning" id="expLoanedTo"
-                                placeholder="Loaned to who?" style="border-color: #ff6b6b;">
-                        </div>
+
                         <div class="mb-3">
                             <input type="text" class="form-control" id="expDesc" placeholder="Description (optional)">
                         </div>
                         <button type="submit" class="btn btn-primary w-100"
-                            style="background: var(--accent); border:none;">Add to Bill</button>
+                            style="background: var(--accent); border:none;">Add Transaction</button>
                     </form>
                 </div>
             </div>
@@ -760,6 +977,11 @@
         // --- STATE ---
         let expenses = JSON.parse(localStorage.getItem('expenseTrackerData')) || [];
         let monthlyTarget = parseFloat(localStorage.getItem('monthlyTarget')) || 500;
+        let incomeTarget = parseFloat(localStorage.getItem('incomeTarget')) || 5000;
+
+        // Dynamic Income (Calculated from transactions)
+        let currentIncome = 0;
+        let isExpenseCardActive = true;
 
         let currentDate = new Date();
         let selectedDate = null;
@@ -771,7 +993,7 @@
 
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Init Target Input
+            // Init Inputs
             document.getElementById('targetInput').value = monthlyTarget;
             document.getElementById('targetInput').addEventListener('input', (e) => {
                 monthlyTarget = parseFloat(e.target.value) || 0;
@@ -779,8 +1001,14 @@
                 updateTargetUI();
             });
 
+            document.getElementById('incomeTargetInput').value = incomeTarget;
+            document.getElementById('incomeTargetInput').addEventListener('input', (e) => {
+                incomeTarget = parseFloat(e.target.value) || 0;
+                localStorage.setItem('incomeTarget', incomeTarget);
+                updateIncomeUI();
+            });
+
             initTags();
-            // Initial Calendar Render
             currentCalendarView = createCalendarView(currentDate);
             currentCalendarView.classList.add('panel-visible');
             document.getElementById('calendarStack').appendChild(currentCalendarView);
@@ -788,7 +1016,6 @@
 
             updateUI();
 
-            // Event Delegation for Calendar Clicks
             document.getElementById('calendarStack').addEventListener('click', (e) => {
                 const dayEl = e.target.closest('.calendar-day');
                 if (dayEl && !dayEl.classList.contains('empty')) {
@@ -796,6 +1023,41 @@
                 }
             });
         });
+
+        // --- TRANSACTION TYPE TOGGLE ---
+        function toggleTransactionType(type) {
+            document.getElementById('transType').value = type;
+            const expFields = document.getElementById('expenseFields');
+            const btns = document.querySelectorAll('.type-btn');
+
+            btns.forEach(b => b.classList.remove('active'));
+            if (type === 'expense') {
+                document.querySelector('.type-btn.expense').classList.add('active');
+                expFields.style.display = 'block';
+            } else {
+                document.querySelector('.type-btn.income').classList.add('active');
+                expFields.style.display = 'none';
+            }
+        }
+
+        // --- CARD SWITCHING ---
+        function switchCards() {
+            const cardExpense = document.getElementById('cardExpense');
+            const cardIncome = document.getElementById('cardIncome');
+
+            if (isExpenseCardActive) {
+                cardExpense.classList.remove('active');
+                cardExpense.classList.add('inactive');
+                cardIncome.classList.remove('inactive');
+                cardIncome.classList.add('active');
+            } else {
+                cardIncome.classList.remove('active');
+                cardIncome.classList.add('inactive');
+                cardExpense.classList.remove('inactive');
+                cardExpense.classList.add('active');
+            }
+            isExpenseCardActive = !isExpenseCardActive;
+        }
 
         function initTags() {
             const select = document.getElementById('expTag');
@@ -815,16 +1077,17 @@
             });
         }
 
-        // --- TARGET UI UPDATE ---
+        // --- EXPENSE TARGET UI ---
         function updateTargetUI() {
-            const billExpenses = getBillableExpenses(); // Only active expenses
+            const billExpenses = getBillableExpenses();
             let totalSpent = 0;
-            billExpenses.forEach(e => totalSpent += e.amount);
+            billExpenses.forEach(e => {
+                if (e.type !== 'income') totalSpent += e.amount;
+            });
 
             const progressBar = document.getElementById('targetProgressBar');
             const marginDisplay = document.getElementById('targetMarginDisplay');
 
-            // Progress Calculation
             let percentage = 0;
             if (monthlyTarget > 0) {
                 percentage = (totalSpent / monthlyTarget) * 100;
@@ -832,12 +1095,39 @@
             }
             progressBar.style.width = `${percentage}%`;
 
-            // Margin Display
             const diff = monthlyTarget - totalSpent;
             if (diff >= 0) {
                 marginDisplay.innerHTML = `<i class="fas fa-check-circle margin-good"></i> <span class="margin-good">Under by $${diff.toFixed(2)}</span>`;
             } else {
                 marginDisplay.innerHTML = `<i class="fas fa-exclamation-circle margin-bad"></i> <span class="margin-bad">Over by $${Math.abs(diff).toFixed(2)}</span>`;
+            }
+        }
+
+        // --- INCOME TARGET UI ---
+        function updateIncomeUI() {
+            // Recalculate Current Income from Transactions
+            const monthExpenses = getAllMonthExpenses();
+            currentIncome = 0;
+            monthExpenses.forEach(e => {
+                if (e.type === 'income') currentIncome += e.amount;
+            });
+            document.getElementById('currentIncomeDisplay').innerText = currentIncome.toFixed(0);
+
+            const progressBar = document.getElementById('incomeProgressBar');
+            const marginDisplay = document.getElementById('incomeMarginDisplay');
+
+            let percentage = 0;
+            if (incomeTarget > 0) {
+                percentage = (currentIncome / incomeTarget) * 100;
+                if (percentage > 100) percentage = 100;
+            }
+            progressBar.style.width = `${percentage}%`;
+
+            const toEarn = incomeTarget - currentIncome;
+            if (toEarn > 0) {
+                marginDisplay.innerHTML = `<i class="fas fa-hourglass-half" style="color:white;"></i> <span style="color:white;">To Earn: $${toEarn.toFixed(2)}</span>`;
+            } else {
+                marginDisplay.innerHTML = `<i class="fas fa-check-circle margin-good"></i> <span class="margin-good">Target Hit! (+$${Math.abs(toEarn).toFixed(0)})</span>`;
             }
         }
 
@@ -1003,7 +1293,6 @@
         }
 
         function updateUI() {
-            // Refresh Grid Highlights
             if (currentCalendarView) {
                 const days = currentCalendarView.querySelectorAll('.calendar-day:not(.empty)');
                 days.forEach(day => {
@@ -1017,7 +1306,8 @@
             updateBill();
             updateChart();
             renderLoanList();
-            updateTargetUI(); // Refresh Target
+            updateTargetUI();
+            updateIncomeUI();
         }
 
         // --- LOAN MANAGEMENT LOGIC ---
@@ -1084,7 +1374,11 @@
             selectedDate = dateStr;
             document.getElementById('modalDateDisplay').innerText = dateStr;
             document.getElementById('addExpenseForm').reset();
+
+            // Reset Toggle
+            toggleTransactionType('expense');
             toggleLoanInput();
+
             renderModalList();
             modal.show();
         }
@@ -1093,20 +1387,35 @@
             const list = document.getElementById('modalExpenseList');
             list.innerHTML = '';
             const dayExpenses = expenses.filter(e => e.date === selectedDate);
-            if (dayExpenses.length === 0) list.innerHTML = '<li class="list-group-item text-muted">No expenses yet.</li>';
+            if (dayExpenses.length === 0) list.innerHTML = '<li class="list-group-item text-muted">No transactions.</li>';
 
             dayExpenses.forEach(exp => {
                 const li = document.createElement('li');
                 li.className = 'list-group-item d-flex justify-content-between align-items-center bg-light text-dark border-secondary';
 
-                let tagDisplay = exp.tag;
-                if (exp.tag === 'Loaned' && exp.loanedTo) tagDisplay += ` to ${exp.loanedTo}`;
-                if (exp.isPaid) tagDisplay += " (PAID)";
+                // Display Logic
+                let tagDisplay = "";
+                let amountDisplay = `$${exp.amount.toFixed(2)}`;
+                let iconClass = "";
+                let colorStyle = "";
+
+                if (exp.type === 'income') {
+                    tagDisplay = "Income";
+                    amountDisplay = `+$${exp.amount.toFixed(2)}`;
+                    iconClass = "fa-arrow-up";
+                    colorStyle = "color: #2ed573";
+                } else {
+                    tagDisplay = exp.tag;
+                    if (exp.tag === 'Loaned' && exp.loanedTo) tagDisplay += ` to ${exp.loanedTo}`;
+                    if (exp.isPaid) tagDisplay += " (PAID)";
+                    iconClass = TAGS[exp.tag] ? TAGS[exp.tag].icon : "fa-tag";
+                    colorStyle = TAGS[exp.tag] ? `color: ${TAGS[exp.tag].color}` : "";
+                }
 
                 li.innerHTML = `
                 <div>
-                    <i class="fas ${TAGS[exp.tag].icon}" style="color: ${TAGS[exp.tag].color}"></i>
-                    <strong>${exp.amount}</strong> 
+                    <i class="fas ${iconClass}" style="${colorStyle}"></i>
+                    <strong>${amountDisplay}</strong> 
                     <small class="text-muted">- ${tagDisplay}</small>
                 </div>
                 <button class="btn btn-sm btn-outline-danger" onclick="deleteExpense(${exp.id})">
@@ -1119,26 +1428,34 @@
 
         document.getElementById('addExpenseForm').addEventListener('submit', (e) => {
             e.preventDefault();
+            const type = document.getElementById('transType').value;
             const amt = parseFloat(document.getElementById('expAmount').value);
-            const tag = document.getElementById('expTag').value;
             const desc = document.getElementById('expDesc').value;
+
+            // Expense specific
+            const tag = document.getElementById('expTag').value;
             const loanedTo = document.getElementById('expLoanedTo').value;
 
             if (!amt || !selectedDate) return;
 
-            const newExpense = {
+            const newTx = {
                 id: Date.now(),
                 date: selectedDate,
                 amount: amt,
-                tag: tag,
-                loanedTo: (tag === 'Loaned') ? loanedTo : null,
-                isPaid: false,
+                type: type, // 'expense' or 'income'
                 desc: desc
             };
 
-            expenses.push(newExpense);
+            if (type === 'expense') {
+                newTx.tag = tag;
+                newTx.loanedTo = (tag === 'Loaned') ? loanedTo : null;
+                newTx.isPaid = false;
+            }
+
+            expenses.push(newTx);
             save();
 
+            // Clear fields
             document.getElementById('expAmount').value = '';
             document.getElementById('expDesc').value = '';
             document.getElementById('expLoanedTo').value = '';
@@ -1165,6 +1482,7 @@
         function getBillableExpenses() {
             const all = getAllMonthExpenses();
             return all.filter(e => {
+                // Exclude paid loans from Bill
                 if (e.tag === 'Loaned' && e.isPaid) return false;
                 return true;
             });
@@ -1178,34 +1496,87 @@
             billExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             list.innerHTML = '';
-            let total = 0;
+            let totalExpense = 0;
+            let totalIncome = 0;
 
             billExpenses.forEach((exp, index) => {
-                total += exp.amount;
                 const item = document.createElement('div');
                 item.className = 'bill-item bill-item-animate';
                 item.style.animationDelay = `${index * 0.05}s`;
 
                 const day = exp.date.split('-')[2];
+                let displayTag = "";
+                let amountHtml = "";
 
-                let displayTag = exp.tag.toUpperCase();
-                if (exp.tag === 'Loaned' && exp.loanedTo) {
-                    displayTag += ` (${exp.loanedTo.toUpperCase()})`;
-                } else if (['Food', 'Study', 'Fun'].includes(exp.tag) && exp.desc) {
-                    displayTag += ` (${exp.desc.toUpperCase()})`;
+                if (exp.type === 'income') {
+                    totalIncome += exp.amount;
+                    displayTag = exp.desc ? `INCOME (${exp.desc.toUpperCase()})` : "INCOME";
+                    amountHtml = `<span style="color: #2ed573;">+$${exp.amount.toFixed(2)}</span>`;
+                } else {
+                    totalExpense += exp.amount;
+                    displayTag = exp.tag.toUpperCase();
+                    if (exp.tag === 'Loaned' && exp.loanedTo) {
+                        displayTag += ` (${exp.loanedTo.toUpperCase()})`;
+                    } else if (['Food', 'Study', 'Fun'].includes(exp.tag) && exp.desc) {
+                        displayTag += ` (${exp.desc.toUpperCase()})`;
+                    }
+                    amountHtml = `<span style="color: #000;">$${exp.amount.toFixed(2)}</span>`;
                 }
+
+                // Color Logic
+                let tagColor = (exp.type === 'income') ? '#2ed573' : TAGS[exp.tag].color;
 
                 item.innerHTML = `
                 <span class="d-flex" style="max-width: 75%">
                     <span style="display:inline-block; width:25px; min-width:25px; color:#444;">${day}</span>
-                    <span class="text-truncate" style="color: ${TAGS[exp.tag].color}; text-shadow: 0px 0px 1px rgba(0,0,0,0.1);">${displayTag}</span>
+                    <span class="text-truncate" style="color: ${tagColor}; text-shadow: 0px 0px 1px rgba(0,0,0,0.1);">${displayTag}</span>
                 </span>
-                <span style="white-space: nowrap; color: #000;">$${exp.amount.toFixed(2)}</span>
+                <span style="white-space: nowrap;">${amountHtml}</span>
             `;
                 list.appendChild(item);
             });
 
-            totalEl.innerText = `$${total.toFixed(2)}`;
+            // Net Calculation
+            let net = totalIncome - totalExpense;
+            let sign = net >= 0 ? "+" : "-";
+            let netClass = net >= 0 ? "text-success" : "text-danger";
+            totalEl.innerHTML = `<span class="${netClass}">${sign}$${Math.abs(net).toFixed(2)}</span>`;
+
+            // Profit/Loss Bar
+            const plBar = document.getElementById('plBar');
+            const plText = document.getElementById('plText');
+            const plAmount = document.getElementById('plAmount');
+
+            plBar.className = 'pl-bar'; // reset
+
+            if (totalIncome === 0 && totalExpense === 0) {
+                plText.innerText = "Neutral";
+                plAmount.innerText = "";
+                plBar.style.width = "0%";
+                plBar.classList.add('pl-neutral');
+            } else {
+                // Calculate % based on total volume
+                let percentage = 0;
+                if (net >= 0) {
+                    // Profit
+                    plText.innerText = "Profit";
+                    plAmount.innerText = `+$${net.toFixed(2)}`;
+                    plAmount.style.color = "var(--success-glow)";
+                    plBar.classList.add('pl-profit');
+                    // % of Income kept
+                    percentage = (totalIncome > 0) ? (net / totalIncome) * 100 : 0;
+                } else {
+                    // Loss
+                    plText.innerText = "Loss";
+                    plAmount.innerText = `-$${Math.abs(net).toFixed(2)}`;
+                    plAmount.style.color = "var(--danger-glow)";
+                    plBar.classList.add('pl-loss');
+                    // % Overrun relative to income (capped at 100 visually)
+                    percentage = (totalIncome > 0) ? (Math.abs(net) / totalIncome) * 100 : 100;
+                }
+                if (percentage > 100) percentage = 100;
+                plBar.style.width = `${percentage}%`;
+            }
         }
 
         function updateChart() {
@@ -1214,8 +1585,11 @@
             const tagTotals = {};
             Object.keys(TAGS).forEach(t => tagTotals[t] = 0);
 
+            // Only count EXPENSES for the pie chart
             billExpenses.forEach(e => {
-                if (tagTotals[e.tag] !== undefined) tagTotals[e.tag] += e.amount;
+                if (e.type !== 'income') {
+                    if (tagTotals[e.tag] !== undefined) tagTotals[e.tag] += e.amount;
+                }
             });
 
             const data = Object.values(tagTotals);
@@ -1237,7 +1611,7 @@
                     datasets: [{
                         data: data,
                         backgroundColor: colors,
-                        borderColor: '#ffffff', /* Changed to white for new theme */
+                        borderColor: '#ffffff',
                         borderWidth: 2,
                         borderRadius: 20
                     }]
