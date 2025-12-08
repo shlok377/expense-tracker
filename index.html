@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#dce6fe">
     <title>Expense Tracker</title>
+    <meta name="theme-color" content="#dce6fe">
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -619,6 +619,31 @@
             background: var(--text-secondary);
         }
 
+        /* Trend Graph Section */
+        .trend-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--border-soft);
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-val {
+            display: block;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
         /* --- Modal --- */
         .modal-content {
             background-color: var(--bg-card);
@@ -869,6 +894,7 @@
 
             <!-- COLUMN 3: THE BILL (Intro Animation Delay 0.4s) -->
             <div class="col-lg-4">
+                <!-- Updated Bill Wrapper: Allow growth, remove scroll -->
                 <div class="glass-panel p-0 intro-animate"
                     style="animation-delay: 0.4s; background: transparent; border: none; box-shadow: none; overflow: visible; height: auto; min-height: 90vh;">
                     <div class="bill-container">
@@ -877,6 +903,7 @@
                             <small id="billDateRange">November 2023</small>
                             <div style="border-bottom: 1px dashed #000; margin-top: 10px;"></div>
                         </div>
+                        <!-- Updated List: Removed scroll style -->
                         <div id="billList" style="flex-grow: 1;"></div>
 
                         <div class="bill-total">
@@ -892,6 +919,27 @@
                             </div>
                             <div class="pl-progress-container">
                                 <div id="plBar" class="pl-bar pl-neutral" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- TREND GRAPH SECTION -->
+                        <div class="trend-section">
+                            <div class="summary-row">
+                                <div class="summary-item">
+                                    <span>Earned</span>
+                                    <span id="trendEarned" class="summary-val text-success">$0</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Spent</span>
+                                    <span id="trendSpent" class="summary-val text-danger">$0</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Net</span>
+                                    <span id="trendNet" class="summary-val text-muted">$0</span>
+                                </div>
+                            </div>
+                            <div style="height: 100px;">
+                                <canvas id="trendChart"></canvas>
                             </div>
                         </div>
 
@@ -986,6 +1034,7 @@
         let currentDate = new Date();
         let selectedDate = null;
         let expenseChartInstance = null;
+        let trendChartInstance = null; // New chart instance
         let currentPanel = 'analysis';
         let isPanelAnimating = false;
         let isCalendarAnimating = false;
@@ -1305,6 +1354,7 @@
 
             updateBill();
             updateChart();
+            updateTrendChart();
             renderLoanList();
             updateTargetUI();
             updateIncomeUI();
@@ -1542,6 +1592,12 @@
             let netClass = net >= 0 ? "text-success" : "text-danger";
             totalEl.innerHTML = `<span class="${netClass}">${sign}$${Math.abs(net).toFixed(2)}</span>`;
 
+            // Update Summary Text
+            document.getElementById('trendEarned').innerText = `$${totalIncome.toFixed(2)}`;
+            document.getElementById('trendSpent').innerText = `$${totalExpense.toFixed(2)}`;
+            document.getElementById('trendNet').innerText = `${sign}$${Math.abs(net).toFixed(2)}`;
+            document.getElementById('trendNet').className = `summary-val ${netClass}`;
+
             // Profit/Loss Bar
             const plBar = document.getElementById('plBar');
             const plText = document.getElementById('plText');
@@ -1611,7 +1667,7 @@
                     datasets: [{
                         data: data,
                         backgroundColor: colors,
-                        borderColor: '#ffffff',
+                        borderColor: '#ffffff', /* Changed to white for new theme */
                         borderWidth: 2,
                         borderRadius: 20
                     }]
@@ -1621,6 +1677,95 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     cutout: '70%'
+                }
+            });
+        }
+
+        // --- NEW: Trend Chart Update ---
+        function updateTrendChart() {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            const currentYear = new Date().getFullYear();
+
+            // 1. Initialize 12 months of empty data
+            const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const incomeData = new Array(12).fill(0);
+            const expenseData = new Array(12).fill(0);
+
+            // 2. Populate with actual data from current year
+            expenses.forEach(e => {
+                if (e.tag === 'Loaned' && e.isPaid) return; // Skip paid loans
+
+                const d = new Date(e.date);
+                if (d.getFullYear() === currentYear) {
+                    const monthIndex = d.getMonth(); // 0-11
+                    if (e.type === 'income') {
+                        incomeData[monthIndex] += e.amount;
+                    } else {
+                        expenseData[monthIndex] += e.amount;
+                    }
+                }
+            });
+
+            // 3. Calculate Y-Axis Max
+            const maxDataVal = Math.max(...incomeData, ...expenseData);
+            const maxSettingVal = Math.max(monthlyTarget, incomeTarget);
+            const yAxisMax = Math.max(maxDataVal, maxSettingVal) + 500;
+
+            if (trendChartInstance) trendChartInstance.destroy();
+
+            trendChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Income',
+                            data: incomeData,
+                            borderColor: '#2ed573',
+                            backgroundColor: 'rgba(46, 213, 115, 0.1)',
+                            tension: 0.4,
+                            borderWidth: 2,
+                            pointRadius: 3, // Slightly larger points
+                            fill: true
+                        },
+                        {
+                            label: 'Expense',
+                            data: expenseData,
+                            borderColor: '#ff4757',
+                            backgroundColor: 'rgba(255, 71, 87, 0.1)',
+                            tension: 0.4,
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }, // Keep it clean as requested before
+                    scales: {
+                        x: {
+                            display: true,
+                            grid: { display: false, drawBorder: false },
+                            ticks: {
+                                font: { size: 10 },
+                                color: '#7e90ba' // Muted blue from theme
+                            }
+                        },
+                        y: {
+                            display: true, // User requested approximate amounts on Y axis
+                            beginAtZero: true,
+                            max: yAxisMax,
+                            grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false },
+                            ticks: {
+                                font: { size: 9 },
+                                color: '#7e90ba',
+                                callback: function (value) { return '$' + value; } // Add $ sign
+                            }
+                        }
+                    },
+                    layout: { padding: { left: 0, right: 10, top: 10, bottom: 0 } }
                 }
             });
         }
