@@ -1759,6 +1759,7 @@
                             max: yAxisMax,
                             grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false },
                             ticks: {
+                                stepSize: 100, // Added step size of 150
                                 font: { size: 9 },
                                 color: '#7e90ba',
                                 callback: function (value) { return '$' + value; } // Add $ sign
