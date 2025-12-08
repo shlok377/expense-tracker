@@ -938,7 +938,7 @@
                                     <span id="trendNet" class="summary-val text-muted">$0</span>
                                 </div>
                             </div>
-                            <div style="height: 100px;">
+                            <div style="height: 150px;">
                                 <canvas id="trendChart"></canvas>
                             </div>
                         </div>
@@ -1709,7 +1709,10 @@
             // 3. Calculate Y-Axis Max
             const maxDataVal = Math.max(...incomeData, ...expenseData);
             const maxSettingVal = Math.max(monthlyTarget, incomeTarget);
-            const yAxisMax = Math.max(maxDataVal, maxSettingVal) + 500;
+            let yAxisMax = Math.max(maxDataVal, maxSettingVal) + 200;
+
+            // Round up to nearest 150 to match step size
+            yAxisMax = Math.ceil(yAxisMax / 50) * 50;
 
             if (trendChartInstance) trendChartInstance.destroy();
 
@@ -1759,7 +1762,7 @@
                             max: yAxisMax,
                             grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false },
                             ticks: {
-                                stepSize: 100, // Added step size of 150
+                                stepSize: 50, // Added step size of 150
                                 font: { size: 9 },
                                 color: '#7e90ba',
                                 callback: function (value) { return '$' + value; } // Add $ sign
